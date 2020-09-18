@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "angular-crud-fire-c11bb": {
+      "hosting": {
+        "firebasetutorial": [
+          "angular-crud-fire-c11bb"
+        ]
+      }
+    }
+  }
+}
