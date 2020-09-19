@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FirebaseServiceService } from './services/firebase-service.service';
+import { isNullOrUndefined } from 'util';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,8 @@ export class AppComponent implements OnInit {
   //ESTE ES PARA PAGINACIÓN
   config: any;
   closeResult = '';
+  idFirebaseActualizar: string;
+  actualizar: boolean;
   collection = {
     count: 10,
     data: [],
@@ -25,6 +28,8 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.idFirebaseActualizar = '';
+    this.actualizar = false;
     //PAGINACIÓN
     this.config = {
       itemsPerPage: 15,
@@ -37,18 +42,19 @@ export class AppComponent implements OnInit {
       nombre: ['', Validators.required],
       apellido: ['', Validators.required],
     });
-// OBTENER TODOS LOS ETUDIANTES
-    this.firebaseServiceService.getEstudiantes().subscribe(resp => {
+    // OBTENER TODOS LOS ETUDIANTES
+    this.firebaseServiceService.getEstudiantes().subscribe(
+      (resp) => {
         this.collection.data = resp.map((e: any) => {
           return {
             id: e.payload.doc.data().id,
             nombre: e.payload.doc.data().nombre,
             apellido: e.payload.doc.data().apellido,
-            idFirebase: e.payload.doc.id
+            idFirebase: e.payload.doc.id,
           };
         });
       },
-      error => {
+      (error) => {
         console.error(error);
       }
     );
@@ -67,22 +73,48 @@ export class AppComponent implements OnInit {
   }
 
   eliminar(item: any): void {
-    this.collection.data.pop(item);
+    this.firebaseServiceService.deleteEstudiante(item.idFirebase);
+    // ESTE METODO ES SOLO PARA BORRAR DE MEMORIA O DEL ARRAY
+    // this.collection.data.pop(item);
   }
 
   guardarEstudiante(): void {
-    this.firebaseServiceService.createEstudiantes(this.estudianteForm.value).then((resp) => {
+    this.firebaseServiceService
+      .createEstudiantes(this.estudianteForm.value)
+      .then((resp) => {
         this.estudianteForm.reset();
         this.modalService.dismissAll();
-      }).catch(error => {
+      })
+      .catch((error) => {
         console.error(error);
       });
 
     // este metodo se quita porque ya no es necesario con firebase
     // this.collection.data.push(this.estudianteForm.value);
   }
-// MODAL DIALOG
-  open(content) {
+
+  actualizarEstudiante() {
+    if (!isNullOrUndefined(this.idFirebaseActualizar)) {
+      this.firebaseServiceService
+        .updateEstudiante(this.idFirebaseActualizar, this.estudianteForm.value)
+        .then((resp) => {
+          this.estudianteForm.reset();
+          this.modalService.dismissAll();
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  }
+  openEditar(content, item: any) {
+    // llenar el form
+    this.actualizar = true;
+    this.estudianteForm.setValue({
+      id: item.id,
+      nombre: item.nombre,
+      apellido: item.apellido,
+    });
+    this.idFirebaseActualizar = item.idFirebase;
     this.modalService
       .open(content, { ariaLabelledBy: 'modal-basic-title' })
       .result.then(
@@ -94,7 +126,22 @@ export class AppComponent implements OnInit {
         }
       );
   }
-// MODAL DIALOG
+  // MODAL DIALOG
+  open(content) {
+    this.actualizar = false;
+    this.modalService
+      .open(content, { ariaLabelledBy: 'modal-basic-title' })
+      .result.then(
+        (result) => {
+          this.closeResult = `Closed with: ${result}`;
+        },
+        (reason) => {
+          this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
+        }
+      );
+  }
+
+  // MODAL DIALOG
   private getDismissReason(reason: any): string {
     if (reason === ModalDismissReasons.ESC) {
       return 'by pressing ESC';
