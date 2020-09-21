@@ -1,3 +1,20 @@
+<div *ngIf="!isSignIn">
+  <h1>probando denuevo</h1>
+  <input type="text" #emailSingup />
+  <input type="text" #passwordSingup />
+  <button (click)="onSingup(emailSingup.value, passwordSingup.value)">
+    Sing up
+  </button>
+</div>
+<hr />
+<div *ngIf="!inSignIn">
+  <h2>Sing in</h2>
+  <input type="text" #email />
+  <input type="text" #password />
+  <button (click)="onSingin(email.value, password.value)">Sing in</button>
+</div>
+<app-home *ngIf="inSignIn" (isLogout)="handleLogout()"></app-home>
+<div style="text-align: center;"><h1>otra cosa</h1></div>
 <div class="container" style="text-align: center">
   <h1>SISTEMA DE ESTUDIANTES</h1>
   <button

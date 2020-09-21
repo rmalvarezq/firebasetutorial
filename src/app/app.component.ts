@@ -10,6 +10,8 @@ import { isNullOrUndefined } from 'util';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit {
+  // INICIALIZAR PARA INGRESO
+  inSignIn = false;
   //ESTE ES PARA PAGINACIÓN
   config: any;
   closeResult = '';
@@ -28,6 +30,13 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    //Método para loguearse
+    if (localStorage.getItem('user') !== null) {
+      this.inSignIn = true;
+    } else {
+      this.inSignIn = false;
+    }
+
     this.idFirebaseActualizar = '';
     this.actualizar = false;
     //PAGINACIÓN
@@ -150,5 +159,25 @@ export class AppComponent implements OnInit {
     } else {
       return `with: ${reason}`;
     }
+  }
+  // MEtodo de login
+  async onSingup(email: string, password: string) {
+    await this.firebaseServiceService.singup(email, password);
+    if (this.firebaseServiceService.isLogin) {
+      this.inSignIn = true;
+    }
+  }
+
+  async onSingin(email: string, password: string) {
+    await this.firebaseServiceService.singin(email, password);
+    if (this.firebaseServiceService.isLogin) {
+      this.inSignIn = true;
+      console.log('si llega');
+      console.log(this.inSignIn);
+      
+    }
+  }
+  handleLogout() {
+    this.inSignIn = false;
   }
 }
